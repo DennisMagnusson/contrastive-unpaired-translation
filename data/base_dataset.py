@@ -94,6 +94,9 @@ def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, conve
         transform_list.append(transforms.Lambda(lambda img: __scale_width(img, opt.load_size, opt.crop_size, method)))
     elif 'scale_shortside' in opt.preprocess:
         transform_list.append(transforms.Lambda(lambda img: __scale_shortside(img, opt.load_size, opt.crop_size, method)))
+    elif 'scale_longside' in opt.preprocess:
+        transform_list.append(transforms.Lambda(lambda img: __scale_longside(img, opt.load_size, opt.crop_size, method)))
+
 
     if 'zoom' in opt.preprocess:
         if params is None:
@@ -161,6 +164,16 @@ def __scale_shortside(img, target_width, crop_width, method=Image.BICUBIC):
     else:
         scale = target_width / shortside
         return img.resize((round(ow * scale), round(oh * scale)), method)
+
+def __scale_longside(img, target_width, crop_width, method=Image.BICUBIC):
+    ow, oh = img.size
+    longside = max(ow, oh)
+    if longside <= target_width:
+        return img
+    else:
+        scale = target_width / longside
+        return img.resize((round(ow * scale), round(oh * scale)), method)
+
 
 
 def __trim(img, trim_width):
