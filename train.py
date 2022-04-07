@@ -4,6 +4,7 @@ from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
 #from util.visualizer import Visualizer
+import wandb
 
 
 if __name__ == '__main__':
@@ -21,6 +22,10 @@ if __name__ == '__main__':
     optimize_time = 0.1
 
     times = []
+
+    wandb.init(project="exjobb", entity="dennismagnusson")
+    wandb.config = opt
+
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch
         iter_data_time = time.time()    # timer for data loading per iteration
@@ -48,17 +53,26 @@ if __name__ == '__main__':
             if len(opt.gpu_ids) > 0:
                 torch.cuda.synchronize()
             optimize_time = (time.time() - optimize_start_time) / batch_size * 0.005 + 0.995 * optimize_time
+            losses = model.get_current_losses()
+            wandb.log(dict(losses))
+            #wandb.log({'optimize_time', float(optimize_time)})
+            print(losses)
+            print(optimize_time)
+            #die()
+
 
             if total_iters % opt.display_freq == 0:   # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0
                 model.compute_visuals()
                 #visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
 
-            if total_iters % opt.print_freq == 0:    # print training losses and save logging information to the disk
-                losses = model.get_current_losses()
+            #if total_iters % opt.print_freq == 0:    # print training losses and save logging information to the disk
+                #losses = model.get_current_losses()
+                #print(losses)
+                #die()
                 #visualizer.print_current_losses(epoch, epoch_iter, losses, optimize_time, t_data)
-                if opt.display_id is None or opt.display_id > 0:
-                    pass
+                #if opt.display_id is None or opt.display_id > 0:
+                    #pass
                     #visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
 
             if total_iters % opt.save_latest_freq == 0:   # cache our latest model every <save_latest_freq> iterations
