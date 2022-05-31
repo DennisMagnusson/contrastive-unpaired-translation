@@ -56,6 +56,12 @@ if __name__ == '__main__':
             model.data_dependent_initialize(data)
             model.setup(opt)               # regular setup: load and print networks; create schedulers
             model.parallelize()
+            # Uncomment to export onnx model
+            #import torch.onnx
+            #torch.onnx.export(model.netG, torch.randn(1, 3, 128, 128), 'fastcut_dynamic.onnx', export_params=True, do_constant_folding=True, input_names = ['input'], output_names=['output'], dynamic_axes={'input': {0: 'batch_size', 2: 'width', 3: 'height'}, 'output': {0: 'batch_size', 2: 'width', 3: 'height'}})
+            #for size in [512]:
+              #torch.onnx.export(model.netG, torch.randn(1, 3, size, size), 'fastcut_{}.onnx'.format(size), export_params=True, do_constant_folding=True, input_names = ['input'], output_names=['output'], dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
+
             if opt.eval:
                 model.eval()
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
